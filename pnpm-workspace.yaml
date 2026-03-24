@@ -1,0 +1,9 @@
+packages:
+  - projects/*
+
+catalog:
+  eslint: "^10.1.0"
+  typescript: "^6.0.2"
+
+onlyBuiltDependencies:
+  - esbuild

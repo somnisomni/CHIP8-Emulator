@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "name": "[ Root ]",
+      "path": "."
+    },
+    {
+      "name": "Emulator Core",
+      "path": "projects/emulator-core"
+    },
+    {
+      "name": "Web Frontend",
+      "path": "projects/frontend"
+    }
+  ]
+}

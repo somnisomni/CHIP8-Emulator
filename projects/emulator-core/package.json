@@ -1,0 +1,20 @@
+{
+  "name": "@somni/chip8-emulator-core",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+		"lint": "eslint .",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "typescript": "catalog:",
+    "eslint": "catalog:",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6"
+  }
+}
