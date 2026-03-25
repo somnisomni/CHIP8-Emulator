@@ -15,6 +15,7 @@ export default function createCommonConfig(dirname?: string): Config[] {
         "@stylistic": stylistic,
       },
       rules: {
+        "no-useless-assignment": "off",
         "@stylistic/semi": [ "error", "always" ],
         "@stylistic/quotes": [ "warn", "double" ],
         "@stylistic/comma-dangle": [ "warn", "always-multiline" ],

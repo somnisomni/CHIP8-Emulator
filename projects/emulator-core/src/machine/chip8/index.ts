@@ -1,34 +1,48 @@
-import type { EventBusLogHandler } from "../base/event-bus";
+import type { EventBusImpl, EventBusLogHandler } from "../base/event-bus";
 import type { KeyboardImpl } from "../base/keyboard";
 import type { MemoryImpl } from "../base/memory";
-import { Chip8EventBus } from "./event-bus";
+import { Chip8Display } from "./display";
+import { Chip8Event, Chip8EventBus } from "./event-bus";
 import { Chip8Keyboard } from "./keyboard";
 import { Chip8Memory } from "./memory";
 import { Chip8Processor } from "./processor";
 
 export class Chip8Machine {
-  private readonly eventBus;
-
+  /* Parts */
+  public readonly eventBus: EventBusImpl<Chip8Event>;
   public readonly memory: MemoryImpl;
   public readonly processor: Chip8Processor;
   public readonly keyboard: KeyboardImpl;
+  public readonly display: Chip8Display;
 
-  public constructor(config?: {
+  public constructor(init?: {
     hardwareOverrides?: {
       processor?: Chip8Processor;
       memory?: MemoryImpl;
       keyboard?: KeyboardImpl;
+      display?: Chip8Display;
     },
     eventBusLogger?: EventBusLogHandler,
   }) {
-    this.eventBus = new Chip8EventBus(config?.eventBusLogger);
-    this.memory = config?.hardwareOverrides?.memory || new Chip8Memory(this.eventBus);
-    this.processor = config?.hardwareOverrides?.processor || new Chip8Processor(this.memory, this.eventBus);
-    this.keyboard = config?.hardwareOverrides?.keyboard || new Chip8Keyboard(this.eventBus);
+    this.eventBus = new Chip8EventBus(init?.eventBusLogger);
+    this.memory = init?.hardwareOverrides?.memory || new Chip8Memory(this.eventBus);
+    this.processor = init?.hardwareOverrides?.processor || new Chip8Processor(this.memory, this.eventBus);
+    this.keyboard = init?.hardwareOverrides?.keyboard || new Chip8Keyboard(this.eventBus);
+    this.display = init?.hardwareOverrides?.display || new Chip8Display(this.eventBus);
+
+    this.eventBus.subscribe(Chip8Event.PANIC, () => {
+      this.processor.stop();
+    });
   }
 
-  public loadProgram(program: Uint8Array): void {
-    this.memory.writeRange(0x0200, program);
+  public loadProgram(program: Uint8Array, loadAddress: number = 0x0200): void {
+    this.clear();
+    this.memory.writeRange(loadAddress, program);
+  }
+
+  public clear(): void {
+    this.processor.clear();
+    this.memory.clear();
   }
 }
 

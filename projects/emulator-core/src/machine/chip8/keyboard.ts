@@ -1,5 +1,6 @@
+import type { EventBusImpl } from "../base/event-bus";
 import KeyboardBase from "../base/keyboard";
-import { Chip8Event, type Chip8EventBus } from "./event-bus";
+import { Chip8Event } from "./event-bus";
 
 export enum Chip8Key {
   KEY_0 = 0x0,
@@ -22,7 +23,7 @@ export enum Chip8Key {
 
 export class Chip8Keyboard extends KeyboardBase<Chip8Key> {
   public constructor(
-    private readonly eventBus?: Chip8EventBus,
+    private readonly eventBus?: EventBusImpl<Chip8Event>,
   ) {
     super(Object.values(Chip8Key).filter(value => typeof value === "number"));
   }

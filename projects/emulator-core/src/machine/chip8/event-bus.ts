@@ -1,6 +1,9 @@
 import EventBusBase, { type EventBusLogHandler } from "../base/event-bus";
 
 export enum Chip8Event {
+  /* PANIC - must stop the emulation immediately */
+  PANIC = 0xFFFF_FFFF,
+
   /* Keyboard Events */
   KEY_DOWN       = 0x1000_0000,
   KEY_UP         = 0x1000_0001,
@@ -27,8 +30,22 @@ export enum Chip8Event {
   PROCESSOR_START = 0x3000_0001,
   PROCESSOR_STOP  = 0x3000_0002,
 
+  /* Processor Warnings */
+  PROCESSOR_WARN_REGISTER_VALUE_CLIPPED = 0x3000_E000,
+  PROCESSOR_WARN_UNKNOWN_OPCODE         = 0x3000_E001,
+
   /* Processor Errors */
-  PROCESSOR_ERROR_INVALID_PC_ADDRESS = 0x3000_F000,
+  PROCESSOR_ERROR_INVALID_PC_ADDRESS        = 0x3000_F000,
+  PROCESSOR_ERROR_INVALID_REGISTER_INDEX    = 0x3000_F001,
+  PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION   = 0x3000_F002,
+  PROCESSOR_ERROR_SUBROUTINE_STACK_OVERFLOW = 0x3000_F003,
+
+  /* Display Events */
+  DISPLAY_SET_PIXEL = 0x4000_0000,
+  DISPLAY_CLEAR     = 0x4000_0001,
+
+  /* Display Errors */
+  DISPLAY_ERROR_OUT_OF_BOUNDS = 0x4000_F000,
 }
 
 export class Chip8EventBus extends EventBusBase<Chip8Event> {

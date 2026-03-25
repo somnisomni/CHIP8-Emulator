@@ -1,5 +1,6 @@
+import type { EventBusImpl } from "../base/event-bus";
 import { MemoryBase } from "../base/memory";
-import { Chip8Event, type Chip8EventBus } from "./event-bus";
+import { Chip8Event } from "./event-bus";
 
 const memoryRangesProhibited: [number, number][] = [
   [ 0x0000, 0x01FF ], // First 512 bytes were reserved for the original interpreter
@@ -7,23 +8,25 @@ const memoryRangesProhibited: [number, number][] = [
 
 export class Chip8Memory extends MemoryBase {
   public constructor(
-    private readonly eventBus?: Chip8EventBus,
+    private readonly eventBus?: EventBusImpl<Chip8Event>,
     size: number = 4096,
   ) {
     super(size);
   }
 
-  public override readAt(address: number, ignoreProhibited: boolean = false): number {
+  public override readAt(address: number, ignoreProhibited: boolean = false): number | null {
     if(!ignoreProhibited && this.isAddressProhibited(address)) {
       this.eventBus?.emit(Chip8Event.MEMORY_ERROR_PROHIBITED, address);
-      return -1;
+      this.eventBus?.emit(Chip8Event.PANIC);
+      return null;
     }
 
     const value = super.readAt(address);
 
-    if(value <= -1 || value === undefined) {
+    if(value === null || value === undefined) {
       this.eventBus?.emit(Chip8Event.MEMORY_ERROR_OUT_OF_BOUNDS, address);
-      return -1;
+      this.eventBus?.emit(Chip8Event.PANIC);
+      return null;
     }
 
     this.eventBus?.emit(Chip8Event.MEMORY_READ, { address, value });
@@ -33,11 +36,13 @@ export class Chip8Memory extends MemoryBase {
   public override writeAt(address: number, value: number, ignoreProhibited: boolean = false): void {
     if(!ignoreProhibited && this.isAddressProhibited(address)) {
       this.eventBus?.emit(Chip8Event.MEMORY_ERROR_PROHIBITED, address);
+      this.eventBus?.emit(Chip8Event.PANIC);
       return;
     }
 
     if(address >= this.memory.length) {
       this.eventBus?.emit(Chip8Event.MEMORY_ERROR_OUT_OF_BOUNDS, address);
+      this.eventBus?.emit(Chip8Event.PANIC);
       return;
     }
 
@@ -53,12 +58,7 @@ export class Chip8Memory extends MemoryBase {
   public override writeRange(startAddress: number, values: Uint8Array): void {
     this.eventBus?.emit(Chip8Event.MEMORY_WRITE_RANGE_START, { startAddress, length: values.length });
 
-    for(let offset = 0; offset < values.length; offset++) {
-      const addr = startAddress + offset;
-      const value = values[offset];
-
-      this.writeAt(addr, value ?? -1);
-    }
+    super.writeRange(startAddress, values);
 
     this.eventBus?.emit(Chip8Event.MEMORY_WRITE_RANGE_END, { startAddress, length: values.length });
   }

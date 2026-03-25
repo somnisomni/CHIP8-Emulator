@@ -1,6 +1,12 @@
-export type EventBusLogHandler = (message: string) => void;
+export type EventBusLogHandler = (message: string, rawEventName?: string, rawEventDetail?: unknown) => void;
 
-export default abstract class EventBusBase<TEvent extends number> {
+export interface EventBusImpl<TEvent extends number> {
+  emit(event: TEvent, detail?: unknown): void;
+  subscribe(event: TEvent, listener: EventListenerOrEventListenerObject): void;
+  unsubscribe(event: TEvent, listener: EventListenerOrEventListenerObject): void;
+}
+
+export default abstract class EventBusBase<TEvent extends number> implements EventBusImpl<TEvent> {
   protected readonly eventTarget: EventTarget = new EventTarget();
 
   protected constructor(
@@ -31,7 +37,7 @@ export default abstract class EventBusBase<TEvent extends number> {
 
       const detailValue = detail ? (typeof detail === "number" ? `${detail} (0x${detail.toString(16).toUpperCase()})` : JSON.stringify(detail)) : "";
 
-      this.logger(`[EventBus] "${eventName}" ${message}` + (detail ? `\n  with data: ${detailValue}` : ""));
+      this.logger(`[EventBus] "${eventName}" ${message}` + (detail ? `\n  with data: ${detailValue}` : ""), eventName, detail);
     }
   }
 }
