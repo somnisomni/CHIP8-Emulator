@@ -3,7 +3,12 @@ import adapter from "@sveltejs/adapter-static";
 
 const config: Config = {
   kit: {
-    adapter: adapter(),
+    adapter: adapter({
+      pages: "build",
+      assets: "build",
+      precompress: false,
+      strict: true,
+    }),
     alias: {
       "$": "./src",
     },
