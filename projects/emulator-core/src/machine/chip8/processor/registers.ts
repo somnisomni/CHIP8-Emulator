@@ -1,9 +1,9 @@
 import type { EventBusImpl } from "../../base/event-bus";
-import { Chip8Event } from "../event-bus";
+import { Chip8Event, type Chip8EventDetailTypeMap } from "../event-bus";
 
 export class Chip8ProcessorRegisters {
   public constructor(
-    private readonly eventBus?: EventBusImpl<Chip8Event>,
+    private readonly eventBus?: EventBusImpl<Chip8Event, Chip8EventDetailTypeMap>,
     private readonly maxSubroutineDepth: number = 16,
   ) { this._stack = new Uint16Array(maxSubroutineDepth); }
 
@@ -12,12 +12,12 @@ export class Chip8ProcessorRegisters {
 
   public setGeneral(index: number, value: number): void {
     if(index < 0 || index >= this._general.length) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_INVALID_REGISTER_INDEX, index);
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_INVALID_REGISTER_INDEX, { registerIndex: `V${index.toString(16).toUpperCase()}` });
       return;
     }
 
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { index: `V${index.toString(16).toUpperCase()}`, value });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: `V${index.toString(16).toUpperCase()}` });
     }
 
     this._general[index] = value & 0xFF;
@@ -25,12 +25,12 @@ export class Chip8ProcessorRegisters {
 
   public getGeneral(index: number): number {
     if(index < 0 || index >= this._general.length) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_INVALID_REGISTER_INDEX, index);
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_INVALID_REGISTER_INDEX, { registerIndex: `V${index.toString(16).toUpperCase()}` });
       return 0;
     }
 
     if(this._general[index] === undefined || this._general[index] === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, index);
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: `at general register V${index.toString(16).toUpperCase()}` });
       return 0;
     }
 
@@ -46,7 +46,7 @@ export class Chip8ProcessorRegisters {
 
   public set index(value: number) {
     if(value !== (value & 0x0FFF)) {  // Only 12 bits (0 ~ 4095) are used for I
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { index: "I", value });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "I" });
     }
 
     this._index[0] = value & 0x0FFF;
@@ -54,7 +54,7 @@ export class Chip8ProcessorRegisters {
 
   public get index(): number {
     if(this._index[0] === undefined || this._index[0] === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, "I");
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: "at index register" });
       return 0;
     }
 
@@ -66,7 +66,7 @@ export class Chip8ProcessorRegisters {
 
   public set delayTimer(value: number) {
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { index: "DT", value });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "DT" });
     }
 
     this._delayTimer[0] = value & 0xFF;
@@ -74,7 +74,7 @@ export class Chip8ProcessorRegisters {
 
   public get delayTimer(): number {
     if(this._delayTimer[0] === undefined || this._delayTimer[0] === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, "DT");
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: "at delay timer register" });
       return 0;
     }
 
@@ -86,7 +86,7 @@ export class Chip8ProcessorRegisters {
 
   public set soundTimer(value: number) {
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { index: "ST", value });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "ST" });
     }
 
     this._soundTimer[0] = value & 0xFF;
@@ -94,7 +94,7 @@ export class Chip8ProcessorRegisters {
 
   public get soundTimer(): number {
     if(this._soundTimer[0] === undefined || this._soundTimer[0] === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, "ST");
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: "at sound timer register" });
       return 0;
     }
 
@@ -106,7 +106,7 @@ export class Chip8ProcessorRegisters {
 
   public set programCounter(value: number) {
     if(value !== (value & 0xFFFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { index: "PC", value });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "PC" });
     }
 
     this._programCounter[0] = value & 0xFFFF;
@@ -114,7 +114,7 @@ export class Chip8ProcessorRegisters {
 
   public get programCounter(): number {
     if(this._programCounter[0] === undefined || this._programCounter[0] === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, "PC");
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: "at program counter register" });
       return 0;
     }
 
@@ -127,7 +127,7 @@ export class Chip8ProcessorRegisters {
 
   private set stackPointer(value: number) {
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { index: "SP", value });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "SP" });
     }
 
     this._stackPointer[0] = value & 0xFF;
@@ -135,7 +135,7 @@ export class Chip8ProcessorRegisters {
 
   public get stackPointer(): number {
     if(this._stackPointer[0] === undefined || this._stackPointer[0] === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, "SP");
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: "at stack pointer register" });
       return 0;
     }
 
@@ -144,7 +144,7 @@ export class Chip8ProcessorRegisters {
 
   public pushStack(address: number): void {
     if(this.stackPointer >= this.maxSubroutineDepth - 1) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_SUBROUTINE_STACK_OVERFLOW, { what: "push", addressToPush: address });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_SUBROUTINE_STACK_OVERFLOW);
       this.eventBus?.emit(Chip8Event.PANIC);
       return;
     }
@@ -156,7 +156,7 @@ export class Chip8ProcessorRegisters {
 
   public popStack(): void {
     if(this.stackPointer <= 0) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_SUBROUTINE_STACK_OVERFLOW, { what: "pop" });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_SUBROUTINE_STACK_OVERFLOW);
       this.eventBus?.emit(Chip8Event.PANIC);
       return;
     }
@@ -164,7 +164,7 @@ export class Chip8ProcessorRegisters {
     const value = this._stack[this.stackPointer - 1];
 
     if(value === undefined || value === null) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, `stack value at ${this.stackPointer}`);
+      this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION, { message: `stack value at ${this.stackPointer}` });
       return;
     }
 

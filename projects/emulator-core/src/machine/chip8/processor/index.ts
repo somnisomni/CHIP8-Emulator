@@ -1,6 +1,6 @@
 import type { EventBusImpl } from "../../base/event-bus";
 import type { MemoryImpl } from "../../base/memory";
-import { Chip8Event } from "../event-bus";
+import { Chip8Event, type Chip8EventDetailTypeMap } from "../event-bus";
 import { Chip8Opcode } from "./opcodes";
 import { Chip8ProcessorRegisters } from "./registers";
 
@@ -24,13 +24,13 @@ export class Chip8Processor {
   /* Config */
   private readonly config = {
     programStartAddress: 0x0200,
-    targetExecutionFrequency: 2,
+    targetExecutionFrequency: 30,
     timerFrequency: 60,
   };
 
   public constructor(
     private readonly memory: MemoryImpl,
-    private readonly eventBus?: EventBusImpl<Chip8Event>,
+    private readonly eventBus?: EventBusImpl<Chip8Event, Chip8EventDetailTypeMap>,
     init: Partial<typeof this.config> = { },
   ) {
     this.config = { ...this.config, ...init };
@@ -88,7 +88,7 @@ export class Chip8Processor {
     // Decode
     const opData = Chip8Opcode.parseOpcode(opcode);
     if(!opData) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_UNKNOWN_OPCODE, opcode);
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_UNKNOWN_OPCODE, { opcode });
       return;
     }
 

@@ -1,6 +1,6 @@
 import type { EventBusImpl } from "../base/event-bus";
 import KeyboardBase from "../base/keyboard";
-import { Chip8Event } from "./event-bus";
+import { Chip8Event, type Chip8EventDetailTypeMap } from "./event-bus";
 
 export enum Chip8Key {
   KEY_0 = 0x0,
@@ -23,24 +23,29 @@ export enum Chip8Key {
 
 export class Chip8Keyboard extends KeyboardBase<Chip8Key> {
   public constructor(
-    private readonly eventBus?: EventBusImpl<Chip8Event>,
+    private readonly eventBus?: EventBusImpl<Chip8Event, Chip8EventDetailTypeMap>,
   ) {
     super(Object.values(Chip8Key).filter(value => typeof value === "number"));
   }
 
   public override press(key: Chip8Key): void {
     super.press(key);
-    this.eventBus?.emit(Chip8Event.KEY_DOWN, Chip8Key[key]);
+    this.eventBus?.emit(Chip8Event.KEY_DOWN, key);
   }
 
   public override release(key: Chip8Key): void {
     super.release(key);
-    this.eventBus?.emit(Chip8Event.KEY_UP, Chip8Key[key]);
+    this.eventBus?.emit(Chip8Event.KEY_UP, key);
   }
 
   public override isPressed(key: Chip8Key): boolean {
     const isPressed = super.isPressed(key);
-    this.eventBus?.emit(Chip8Event.KEY_STATE_READ, Chip8Key[key]);
+    this.eventBus?.emit(Chip8Event.KEY_STATE_READ, key);
     return isPressed;
+  }
+
+  public override clear(): void {
+    super.clear();
+    this.eventBus?.emit(Chip8Event.KEYBOARD_CLEAR);
   }
 }

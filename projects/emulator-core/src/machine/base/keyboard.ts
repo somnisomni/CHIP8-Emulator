@@ -2,6 +2,7 @@ export interface KeyboardImpl {
   press(key: number): void;
   release(key: number): void;
   isPressed(key: number): boolean;
+  clear(): void;
 }
 
 export default abstract class KeyboardBase<TKeyCodes extends number> implements KeyboardImpl {
@@ -23,5 +24,11 @@ export default abstract class KeyboardBase<TKeyCodes extends number> implements 
 
   public isPressed(key: TKeyCodes): boolean {
     return this.keyState.get(key) || false;
+  }
+
+  public clear(): void {
+    for(const key of this.keyState.keys()) {
+      this.keyState.set(key, false);
+    }
   }
 }

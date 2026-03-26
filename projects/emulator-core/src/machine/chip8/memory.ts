@@ -1,6 +1,6 @@
 import type { EventBusImpl } from "../base/event-bus";
 import { MemoryBase } from "../base/memory";
-import { Chip8Event } from "./event-bus";
+import { Chip8Event, type Chip8EventDetailTypeMap } from "./event-bus";
 
 const memoryRangesProhibited: [number, number][] = [
   [ 0x0000, 0x01FF ], // First 512 bytes were reserved for the original interpreter
@@ -8,7 +8,7 @@ const memoryRangesProhibited: [number, number][] = [
 
 export class Chip8Memory extends MemoryBase {
   public constructor(
-    private readonly eventBus?: EventBusImpl<Chip8Event>,
+    private readonly eventBus?: EventBusImpl<Chip8Event, Chip8EventDetailTypeMap>,
     size: number = 4096,
   ) {
     super(size);
@@ -16,7 +16,7 @@ export class Chip8Memory extends MemoryBase {
 
   public override readAt(address: number, ignoreProhibited: boolean = false): number | null {
     if(!ignoreProhibited && this.isAddressProhibited(address)) {
-      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_PROHIBITED, address);
+      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_PROHIBITED, { address });
       this.eventBus?.emit(Chip8Event.PANIC);
       return null;
     }
@@ -24,7 +24,7 @@ export class Chip8Memory extends MemoryBase {
     const value = super.readAt(address);
 
     if(value === null || value === undefined) {
-      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_OUT_OF_BOUNDS, address);
+      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_OUT_OF_BOUNDS, { address });
       this.eventBus?.emit(Chip8Event.PANIC);
       return null;
     }
@@ -35,19 +35,19 @@ export class Chip8Memory extends MemoryBase {
 
   public override writeAt(address: number, value: number, ignoreProhibited: boolean = false): void {
     if(!ignoreProhibited && this.isAddressProhibited(address)) {
-      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_PROHIBITED, address);
+      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_PROHIBITED, { address });
       this.eventBus?.emit(Chip8Event.PANIC);
       return;
     }
 
     if(address >= this.memory.length) {
-      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_OUT_OF_BOUNDS, address);
+      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_OUT_OF_BOUNDS, { address });
       this.eventBus?.emit(Chip8Event.PANIC);
       return;
     }
 
     if(value < 0 || value > 255) {
-      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_WRITE_INVALID_VALUE, { address, value });
+      this.eventBus?.emit(Chip8Event.MEMORY_ERROR_WRITE_INVALID_VALUE, { address, attemptedValue: value });
       return;
     }
 

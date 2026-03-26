@@ -1,12 +1,12 @@
 export type EventBusLogHandler = (message: string, rawEventName?: string, rawEventDetail?: unknown) => void;
 
-export interface EventBusImpl<TEvent extends number> {
-  emit(event: TEvent, detail?: unknown): void;
+export interface EventBusImpl<TEvent extends number, TEventDetailTypeMap extends Record<TEvent, unknown>> {
+  emit<K extends TEvent>(event: K, detail?: TEventDetailTypeMap[K]): void;
   subscribe(event: TEvent, listener: EventListenerOrEventListenerObject): void;
   unsubscribe(event: TEvent, listener: EventListenerOrEventListenerObject): void;
 }
 
-export default abstract class EventBusBase<TEvent extends number> implements EventBusImpl<TEvent> {
+export default abstract class EventBusBase<TEvent extends number, TEventDetailTypeMap extends Record<TEvent, unknown>> implements EventBusImpl<TEvent, TEventDetailTypeMap> {
   protected readonly eventTarget: EventTarget = new EventTarget();
 
   protected constructor(
@@ -14,7 +14,7 @@ export default abstract class EventBusBase<TEvent extends number> implements Eve
     protected readonly loggerEventNameTransformer?: (event: TEvent) => string,
   ) { }
 
-  public emit(event: TEvent, detail?: unknown): void {
+  public emit<K extends TEvent>(event: K, detail?: TEventDetailTypeMap[K]): void {
     this.eventTarget.dispatchEvent(new CustomEvent(event.toString(), { detail }));
     this.log("EMIT", event, detail);
   }
