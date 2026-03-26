@@ -1,0 +1,41 @@
+name: Test for Emulator Core (Jest)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+    - name: Install dependencies
+      run: pnpm install --prefer-frozen-lockfile
+    - name: Run test
+      run: pnpm --filter @somni/chip8-emulator-core test --coverage
+        --coverageReporters=text
+        --coverageReporters=text-summary
+        --coverageReporters=cobertura
+    - name: Generate code coverage report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: projects/emulator-core/coverage/cobertura-coverage.xml
+        badge: true
+        format: markdown
+        indicators: true
+        output: both
+    - name: Export code coverage report to job summary
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
