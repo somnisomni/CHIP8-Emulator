@@ -57,7 +57,7 @@ export abstract class MemoryBase implements MemoryImpl {
       const addr = startAddress + offset;
       const value = values[offset];
 
-      this.writeAt(addr, value ?? -1);
+      this.writeAt(addr, value!);
     }
   }
 
