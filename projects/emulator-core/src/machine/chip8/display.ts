@@ -11,13 +11,18 @@ export class Chip8Display extends DisplayBase {
   }
 
   public override setPixel(x: number, y: number, value: number): void {
-    if(x < 0 || x >= this.size[0] || y < 0 || y >= this.size[1] || !this.framebuffer[y]) {
-      this.eventBus?.emit(Chip8Event.DISPLAY_ERROR_OUT_OF_BOUNDS, { x, y });
-      return;
-    }
-
     super.setPixel(x, y, value);
     this.eventBus?.emit(Chip8Event.DISPLAY_SET_PIXEL, { x, y, value });
+  }
+
+  public override getPixel(x: number, y: number): number | null {
+    const value = super.getPixel(x, y);
+
+    if(value === null || value < 0) {
+      this.eventBus?.emit(Chip8Event.DISPLAY_ERROR_EMULATOR_IMPLEMENTATION);
+    }
+
+    return value;
   }
 
   public override clear(): void {

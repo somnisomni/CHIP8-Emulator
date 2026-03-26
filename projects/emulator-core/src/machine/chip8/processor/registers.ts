@@ -11,13 +11,15 @@ export class Chip8ProcessorRegisters {
   private readonly _general: Uint8Array = new Uint8Array(16);
 
   public setGeneral(index: number, value: number): void {
+    value = Math.floor(value);
+
     if(index < 0 || index >= this._general.length) {
       this.eventBus?.emit(Chip8Event.PROCESSOR_ERROR_INVALID_REGISTER_INDEX, { registerIndex: `V${index.toString(16).toUpperCase()}` });
       return;
     }
 
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: `V${index.toString(16).toUpperCase()}` });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: `V${index.toString(16).toUpperCase()}`, attemptedValue: value });
     }
 
     this._general[index] = value & 0xFF;
@@ -45,8 +47,10 @@ export class Chip8ProcessorRegisters {
   private readonly _index: Uint16Array = new Uint16Array(1);
 
   public set index(value: number) {
+    value = Math.floor(value);
+
     if(value !== (value & 0x0FFF)) {  // Only 12 bits (0 ~ 4095) are used for I
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "I" });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "I", attemptedValue: value });
     }
 
     this._index[0] = value & 0x0FFF;
@@ -65,8 +69,10 @@ export class Chip8ProcessorRegisters {
   private readonly _delayTimer: Uint8Array = new Uint8Array(1);
 
   public set delayTimer(value: number) {
+    value = Math.floor(value);
+
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "DT" });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "DT", attemptedValue: value });
     }
 
     this._delayTimer[0] = value & 0xFF;
@@ -85,8 +91,10 @@ export class Chip8ProcessorRegisters {
   private readonly _soundTimer: Uint8Array = new Uint8Array(1);
 
   public set soundTimer(value: number) {
+    value = Math.floor(value);
+
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "ST" });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "ST", attemptedValue: value });
     }
 
     this._soundTimer[0] = value & 0xFF;
@@ -105,8 +113,10 @@ export class Chip8ProcessorRegisters {
   private readonly _programCounter: Uint16Array = new Uint16Array(1);
 
   public set programCounter(value: number) {
+    value = Math.floor(value);
+
     if(value !== (value & 0xFFFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "PC" });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "PC", attemptedValue: value });
     }
 
     this._programCounter[0] = value & 0xFFFF;
@@ -126,8 +136,10 @@ export class Chip8ProcessorRegisters {
   private readonly _stack: Uint16Array;
 
   private set stackPointer(value: number) {
+    value = Math.floor(value);
+
     if(value !== (value & 0xFF)) {
-      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "SP" });
+      this.eventBus?.emit(Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED, { registerIndex: "SP", attemptedValue: value });
     }
 
     this._stackPointer[0] = value & 0xFF;

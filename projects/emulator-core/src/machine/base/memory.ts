@@ -6,6 +6,7 @@ export interface MemoryImpl {
   readWordAt(address: number): number | null;
   writeAt(address: number, value: number): void;
   writeRange(startAddress: number, values: Uint8Array): void;
+  dump(): Uint8Array;
   clear(): void;
 }
 
@@ -17,6 +18,8 @@ export abstract class MemoryBase implements MemoryImpl {
 
   protected _totalBytesWritten: number = 0;
   public get totalBytesWritten(): number { return this._totalBytesWritten; }
+
+  protected readonly memoryInitMap: Record<number, number[]> = { };
 
   protected constructor(
     public readonly size: number,
@@ -61,9 +64,29 @@ export abstract class MemoryBase implements MemoryImpl {
     }
   }
 
+  public dump(): Uint8Array {
+    return this.memory.slice(0);
+  }
+
   public clear(): void {
     this.memory.fill(0);
     this._totalBytesRead = 0;
     this._totalBytesWritten = 0;
+
+    this.initMemory();
+  }
+
+  protected initMemory(): void {
+    for(const init of Object.entries(this.memoryInitMap)) {
+      const initStartAddr = Number(init[0]);
+
+      for(let index = 0; index < init[1].length; index++) {
+        const targetAddr = initStartAddr + index;
+
+        if(targetAddr > this.memory.length) continue;
+
+        this.memory[targetAddr] = init[1][index]!;
+      }
+    }
   }
 }

@@ -46,7 +46,7 @@ export enum Chip8Event {
   DISPLAY_CLEAR     = 0x4000_0001,
 
   /* Display Errors */
-  DISPLAY_ERROR_OUT_OF_BOUNDS = 0x4000_F000,
+  DISPLAY_ERROR_EMULATOR_IMPLEMENTATION = 0x4000_F000,
 }
 
 export type Chip8EventDetailTypeMap = {
@@ -79,13 +79,13 @@ export type Chip8EventDetailTypeMap = {
   [Chip8Event.PROCESSOR_STOP]: never;
 
   /* Processor Warnings */
-  [Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED]: { registerIndex: string };
+  [Chip8Event.PROCESSOR_WARN_REGISTER_VALUE_CLIPPED]: { registerIndex: string, attemptedValue: number };
   [Chip8Event.PROCESSOR_WARN_UNKNOWN_OPCODE]: { opcode: number };
 
   /* Processor Errors */
   [Chip8Event.PROCESSOR_ERROR_INVALID_PC_ADDRESS]: { address: number };
   [Chip8Event.PROCESSOR_ERROR_INVALID_REGISTER_INDEX]: { registerIndex: string };
-  [Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION]: { message?: string } | never;
+  [Chip8Event.PROCESSOR_ERROR_EMULATOR_IMPLEMENTATION]: { message: string } | never;
   [Chip8Event.PROCESSOR_ERROR_SUBROUTINE_STACK_OVERFLOW]: never;
 
   /* Display Events */
@@ -93,7 +93,7 @@ export type Chip8EventDetailTypeMap = {
   [Chip8Event.DISPLAY_CLEAR]: never;
 
   /* Display Errors */
-  [Chip8Event.DISPLAY_ERROR_OUT_OF_BOUNDS]: { x: number, y: number };
+  [Chip8Event.DISPLAY_ERROR_EMULATOR_IMPLEMENTATION]: { message: string } | never;
 };
 
 export class Chip8EventBus extends EventBusBase<Chip8Event, Chip8EventDetailTypeMap> {
