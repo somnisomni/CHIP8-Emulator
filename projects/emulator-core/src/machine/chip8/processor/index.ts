@@ -1,3 +1,4 @@
+import type { DisplayImpl } from "../../base/display";
 import type { EventBusImpl } from "../../base/event-bus";
 import type { MemoryImpl } from "../../base/memory";
 import { Chip8Event, type Chip8EventDetailTypeMap } from "../event-bus";
@@ -30,6 +31,7 @@ export class Chip8Processor {
 
   public constructor(
     private readonly memory: MemoryImpl,
+    private readonly display: DisplayImpl,
     private readonly eventBus?: EventBusImpl<Chip8Event, Chip8EventDetailTypeMap>,
     init: Partial<typeof this.config> = { },
   ) {
@@ -93,7 +95,7 @@ export class Chip8Processor {
     }
 
     // Execute
-    if(opData.handle(opcode, this.registers, this.memory)) {
+    if(opData.handle(opcode, this.registers, this.memory, this.display)) {
       // Increment PC (if there's no jump instruction or execution error)
       this.registers.programCounter += 2;
     }

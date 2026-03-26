@@ -28,7 +28,7 @@ export class Chip8Machine {
     this.memory = init?.hardwareOverrides?.memory || new Chip8Memory(this.eventBus);
     this.keyboard = init?.hardwareOverrides?.keyboard || new Chip8Keyboard(this.eventBus);
     this.display = init?.hardwareOverrides?.display || new Chip8Display(this.eventBus);
-    this.processor = init?.hardwareOverrides?.processor || new Chip8Processor(this.memory, this.eventBus);
+    this.processor = init?.hardwareOverrides?.processor || new Chip8Processor(this.memory, this.display, this.eventBus);
 
     this.eventBus.subscribe(Chip8Event.PANIC, () => {
       this.processor.stop();
