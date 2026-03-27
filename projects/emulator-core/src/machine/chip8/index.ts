@@ -1,3 +1,4 @@
+import type { DisplayImpl } from "../base/display";
 import type { EventBusImpl, EventBusLogHandler } from "../base/event-bus";
 import type { KeyboardImpl } from "../base/keyboard";
 import type { MemoryImpl } from "../base/memory";
@@ -12,7 +13,7 @@ export class Chip8Machine {
   public readonly eventBus: EventBusImpl<Chip8Event, Chip8EventDetailTypeMap>;
   public readonly memory: MemoryImpl;
   public readonly keyboard: KeyboardImpl;
-  public readonly display: Chip8Display;
+  public readonly display: DisplayImpl;
   public readonly processor: Chip8Processor;
 
   public constructor(init?: {
@@ -20,7 +21,7 @@ export class Chip8Machine {
       processor?: Chip8Processor;
       memory?: MemoryImpl;
       keyboard?: KeyboardImpl;
-      display?: Chip8Display;
+      display?: DisplayImpl;
     },
     eventBusLogger?: EventBusLogHandler,
   }) {

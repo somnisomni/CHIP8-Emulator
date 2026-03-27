@@ -19,13 +19,14 @@ export class Chip8Processor {
   private lastCycleDuration: number = -1;
   public get currentCycleDuration(): number { return this.lastCycleDuration; }
 
-  private loopId: number | undefined = undefined;
+  private executionLoopId: number | undefined = undefined;
+  private timerLoopId: number | undefined = undefined;
   private lastCycleTimestamp: number = -1;
 
   /* Config */
   private readonly config = {
     programStartAddress: 0x0200,
-    targetExecutionFrequency: 30,
+    targetExecutionFrequency: 250,
     timerFrequency: 60,
   };
 
@@ -49,17 +50,28 @@ export class Chip8Processor {
     this.eventBus?.emit(Chip8Event.PROCESSOR_START);
 
     const cycleInterval = 1000 / this.config.targetExecutionFrequency;
-    this.loopId = setInterval(() => {
+    this.executionLoopId = setInterval(() => {
       this.executeCycle();
       this.cycleCount++;
     }, cycleInterval);
+    this.timerLoopId = setInterval(() => {
+      if(this.registers.delayTimer > 0) {
+        this.registers.delayTimer--;
+      }
+
+      if(this.registers.soundTimer > 0) {
+        this.registers.soundTimer--;
+      }
+    }, 1000 / this.config.timerFrequency);
   }
 
   public stop(): void {
     if(!this.running) return;
 
-    clearInterval(this.loopId);
-    this.loopId = undefined;
+    clearInterval(this.executionLoopId);
+    clearInterval(this.timerLoopId);
+    this.executionLoopId = undefined;
+    this.timerLoopId = undefined;
     this.running = false;
     this.eventBus?.emit(Chip8Event.PROCESSOR_STOP);
   }

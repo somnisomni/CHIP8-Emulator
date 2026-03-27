@@ -1,5 +1,6 @@
 import type { DisplayImpl } from "../../base/display";
 import type { MemoryImpl } from "../../base/memory";
+import { Chip8Memory } from "../memory";
 import type { Chip8ProcessorRegisters } from "./registers";
 
 export type Chip8OpcodeBytes = [number, number, number, number];
@@ -128,6 +129,13 @@ export class Chip8Opcode {
       registers.setGeneral(unpackNibbles[1], sub & 0xFF); // sub
       return true;
     } },
+    { description: "SHL V{1}", pattern: 0x800E, mask: 0xF00F, handle(rawInstruction, registers) {
+      const unpackNibbles = Chip8Opcode.unpack(rawInstruction);
+      const value = registers.getGeneral(unpackNibbles[1]);
+      registers.setGeneral(0xF, (value & 0b1000_0000) === 0b1000_0000 ? 1 : 0);
+      registers.setGeneral(unpackNibbles[1], value * 2);
+      return true;
+    } },
 
     /* 0x9nnn */
     { description: "SNE V{1}, V{2}", pattern: 0x9000, mask: 0xF00F, handle(rawInstruction, registers) {
@@ -161,10 +169,49 @@ export class Chip8Opcode {
     } },
 
     /* 0xDnnn */
-    // { description: "DRW V{1}, V{2}, 0x{3}", pattern: 0xD000, mask: 0xF000, handle(rawInstruction, registers, memory, display) {
+    { description: "DRW V{1}, V{2}, 0x{3}", pattern: 0xD000, mask: 0xF000, handle(rawInstruction, registers, memory, display) {
+      if(!(memory instanceof Chip8Memory)) {
+        console.error("Memory instance should be instance of Chip8Memory to process DRW instruction");
+        return true;
+      }
 
-    //   return true;
-    // } },
+      const unpackNibbles = Chip8Opcode.unpack(rawInstruction);
+      const x = registers.getGeneral(unpackNibbles[1]);
+      const y = registers.getGeneral(unpackNibbles[2]);
+      const length = unpackNibbles[3];
+
+      let collision = false;
+      for(let index = 0; index < length; index++) {
+        const memoryValue = memory.readAt(registers.index + index, true);
+
+        if(memoryValue === null || memoryValue < 0) {
+          console.warn("Improper state while reading memory value (during DRW instruction)");
+          continue;
+        }
+
+        for(let bitIndex = 7; bitIndex >= 0; bitIndex--) {
+          const bit = (memoryValue >> bitIndex) & 0b1;
+          const targetX = x + (7 - bitIndex);
+          const targetY = y + index;
+          const displayValue = display.getPixel(targetX, targetY);
+
+          if(displayValue === null || displayValue < 0) {
+            console.warn("Improper state while reading display pixel value (during DRW instruction)");
+            continue;
+          }
+
+          const targetValue = displayValue ^ bit;
+          if(targetValue !== displayValue) {
+            collision = true;
+          }
+
+          display.setPixel(targetX, targetY, targetValue);
+        }
+      }
+
+      registers.setGeneral(0xF, collision ? 1 : 0);
+      return true;
+    } },
 
     /* 0xEnnn */
     // TODO: Ex9E
@@ -192,7 +239,12 @@ export class Chip8Opcode {
       registers.index += registers.getGeneral(unpackNibbles[1]);
       return true;
     } },
-    // TODO: Fx29
+    { description: "LD F, V{1}", pattern: 0xF029, mask: 0xF0FF, handle(rawInstruction, registers) {
+      const unpackNibbles = Chip8Opcode.unpack(rawInstruction);
+      const digit = (registers.getGeneral(unpackNibbles[1]) & 0xF) as keyof typeof Chip8Memory.fontSpriteAddrMap;
+      registers.index = Chip8Memory.fontSpriteAddrMap[digit];
+      return true;
+    } },
     { description: "LD B, V{1}", pattern: 0xF033, mask: 0xF0FF, handle(rawInstruction, registers, memory) {
       const unpackNibbles = Chip8Opcode.unpack(rawInstruction);
       const value = registers.getGeneral(unpackNibbles[1]);
